@@ -22,31 +22,43 @@ def bin_keypoints(keypoints, tolerance=5):
     binned_keypoints = {(round(kp.pt[0] / tolerance) * tolerance, round(kp.pt[1] / tolerance) * tolerance) for kp in keypoints}
     return binned_keypoints
 
-def compare_keypoints(keypoints1, keypoints2, tolerance=2):
+def bin_responses(keypoints, response_tolerance=0.01):
+    # Bin the responses of the keypoints
+    binned_responses = {round(kp.response / response_tolerance) * response_tolerance for kp in keypoints}
+    return binned_responses
+
+def bin_responses(keypoints, response_tolerance=0.01):
+    # Bin the responses of the keypoints
+    binned_responses = {round(kp.response / response_tolerance) * response_tolerance for kp in keypoints}
+    return binned_responses
+
+def compare_keypoints(keypoints1, keypoints2, position_tolerance=5, response_tolerance=0.01):
     count1 = len(keypoints1)
     count2 = len(keypoints2)
-    # Bin keypoints for both solutions
-    binned_coords1 = bin_keypoints(keypoints1, tolerance)
-    binned_coords2 = bin_keypoints(keypoints2, tolerance)
 
-    # Compare the sets of binned coordinates
-    common_points = binned_coords1.intersection(binned_coords2)
-    unique_to_solution = binned_coords1 - binned_coords2
-    unique_to_student = binned_coords2 - binned_coords1
+    # Bin keypoints for both position and response
+    binned_coords1 = bin_keypoints(keypoints1, position_tolerance)
+    binned_coords2 = bin_keypoints(keypoints2, position_tolerance)
+    binned_responses1 = bin_responses(keypoints1, response_tolerance)
+    binned_responses2 = bin_responses(keypoints2, response_tolerance)
 
+    # Compare the sets of binned coordinates and responses
+    common_positions = binned_coords1.intersection(binned_coords2)
+    unique_positions_solution = binned_coords1 - binned_coords2
+    unique_positions_student = binned_coords2 - binned_coords1
+    common_responses = binned_responses1.intersection(binned_responses2)
     # Prepare the comparison summary
     summary = [
-        f"Solution keypoints (binned): {len(binned_coords1)}",
-        f"Student keypoints (binned): {len(binned_coords2)}",
-        f"Common keypoints: {len(common_points)}",
-        f"Unique to solution: {len(unique_to_solution)}",
-        f"Unique to student: {len(unique_to_student)}",
-        f"solution keypoints: {count1}",
-        f"student keypoints: {count2}"
-        f" used np.grad in solution: True", # if student doesnt unsol=16, unstu=20
+        f"Solution keypoints: {count1}",
+        f"Student keypoints: {count2}",
+        f"Common positions: {len(common_positions)}",
+        f"Unique positions to solution: {len(unique_positions_solution)}",
+        f"Unique positions to student: {len(unique_positions_student)}",
+        f"Common responses: {len(common_responses)} / # solution: {len(binned_responses1)}, # student: {len(binned_responses2)}" # no repsonses?
     ]
 
     return "\n".join(summary)
+
 
 def show_images_side_by_side(img1, img2, window_title="Comparison Solution/Student"):
     # Concatenate images horizontally
@@ -56,15 +68,6 @@ def show_images_side_by_side(img1, img2, window_title="Comparison Solution/Stude
     cv2.imshow(window_title, combined_image)
     cv2.waitKey(0)  # Wait for a key press to close
     cv2.destroyAllWindows()
-
-
-def plot_results(keypoints_img1, keypoints_img2):
-    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    axes[0].imshow(img1, cmap='gray')
-    axes[0].set_title("Solution")
-    axes[1].imshow(img2, cmap='gray')
-    axes[1].set_title("Student")
-    plt.show()
 
 if __name__ == '__main__':
     student_name = sys.argv[1]
