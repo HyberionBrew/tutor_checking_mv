@@ -23,10 +23,22 @@ def compare_descriptors(descriptors_solution, descriptors_student, tolerance=0.1
         if any(euclidean_distance(desc_stu, desc_sol) < tolerance for desc_sol in descriptors_solution):
             match_count += 1
 
+    # sort the solution and student descriptors along axis 1
+    descriptors_solution = np.sort(descriptors_solution, axis=1)
+    descriptors_student = np.sort(descriptors_student, axis=1)
+
+    match_count_sorted = 0
+    for desc_stu in descriptors_student:
+        if any(euclidean_distance(desc_stu, desc_sol) < tolerance for desc_sol in descriptors_solution):
+            match_count_sorted += 1
+
+
+
     summary = [
         f"Total descriptors (solution): {descriptors_solution.shape[0]}",
         f"Total descriptors (student): {descriptors_student.shape[0]}",
-        f"Student descriptors matching with solution: {match_count} / {descriptors_student.shape[0]}"
+        f"Student descriptors matching with solution: {match_count} / {descriptors_student.shape[0]}",
+        f"Student descriptors matching with sorted solution: {match_count_sorted} / {descriptors_student.shape[0]}"
     ]
 
     return "\n".join(summary)
@@ -73,6 +85,9 @@ if __name__ == '__main__':
     filtered_student, descriptors_student = student_module.compute_descriptors(img_gray.copy(), keypoints.copy(), patch_size)
 
     # Compare descriptors
+    print(descriptors_solution[:1])
+    print(descriptors_student[:1])
+
     differences = compare_descriptors(descriptors_solution, descriptors_student)
     
     print("Differences Descriptors:", differences)
